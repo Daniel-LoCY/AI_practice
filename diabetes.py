@@ -14,11 +14,12 @@ import torch
 # from deepctr_torch.models import *
 # This is a package in preview.
 from azureml.opendatasets import Diabetes
+from yaml import load
 
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
 
-# print(diabetes_df['AGE'][0])
+print(diabetes_df.head())
 # train, test = train_test_split(diabetes_df, test_size=0.2)
 
 wide_cols = [
@@ -26,13 +27,11 @@ wide_cols = [
     "SEX",
     "BMI",
     "BP",
-    "S1",
-    "Y",
 ]
 crossed_cols = [("AGE", "BMI"), ("AGE", "SEX")]
 wide_preprocessor = WidePreprocessor(wide_cols=wide_cols, crossed_cols=crossed_cols)
 X_wide = wide_preprocessor.fit_transform(diabetes_df)
-print(X_wide)
+# print(X_wide)
 
 cat_embed_cols = [
     ("AGE"),
@@ -40,16 +39,17 @@ cat_embed_cols = [
     ("BMI"),
     ("BP"),
 ]
-continuous_cols = ["S1", "S2"]
+continuous_cols = ["S1", "S2", "S3", "S4", "S5", "S6"]
 target = "Y"
 target = diabetes_df[target].values
+# print(target)
 
 tab_preprocessor = TabPreprocessor(
     cat_embed_cols=cat_embed_cols, continuous_cols=continuous_cols
 )
 X_tab = tab_preprocessor.fit_transform(diabetes_df)
 
-print(X_tab)
+# print(X_tab)
 
 wide = Wide(input_dim=np.unique(X_wide).shape[0], pred_dim=1)
 tab_mlp = TabMlp(
@@ -57,17 +57,19 @@ tab_mlp = TabMlp(
     cat_embed_input=tab_preprocessor.cat_embed_input,
     continuous_cols=continuous_cols,
 )
-model = WideDeep(wide=wide, deeptabular=tab_mlp)
+# model = WideDeep(wide=wide, deeptabular=tab_mlp)
+model = torch.load('wd_model.pt/wd_model.pt')
 
-trainer = Trainer(model, objective="binary", metrics=[Accuracy])
+trainer = Trainer(model, objective="regression", metrics=[Accuracy])
+trainer.num_workers = 0
 trainer.fit(
     X_wide=X_wide,
     X_tab=X_tab,
     target=target,
-    n_epochs=5,
-    # batch_size=256,
+    n_epochs=50000,
+    batch_size=256,
 )
-
+trainer.save('wd_model.pt')
 
 '''
 import numpy as np
