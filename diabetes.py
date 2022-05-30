@@ -8,7 +8,7 @@ from pytorch_widedeep.metrics import Accuracy
 import pandas as pd
 import torch
 # from sklearn.metrics import log_loss, roc_auc_score
-# from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 # from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 # from deepctr_torch.inputs import SparseFeat, DenseFeat, get_feature_names
 # from deepctr_torch.models import *
@@ -18,8 +18,12 @@ from yaml import load
 
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
+diabetes_df, diabetes_df_test = train_test_split(diabetes_df, test_size=0.2)
+diabetes_df = diabetes.to_pandas_dataframe() # data
 
-# print(diabetes_df.head())
+# print(diabetes_df)
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+    print(diabetes_df)
 # train, test = train_test_split(diabetes_df, test_size=0.2)
 
 wide_cols = [
@@ -62,15 +66,20 @@ model = torch.load('wd_model.pt/wd_model.pt')
 
 trainer = Trainer(model, objective="regression", metrics=[Accuracy])
 trainer.num_workers = 0
-trainer.fit(
-    X_wide=X_wide,
-    X_tab=X_tab,
-    target=target,
-    n_epochs=50000,
-    batch_size=256,
-)
-trainer.save('wd_model.pt')
+# trainer.fit(
+#     X_wide=X_wide,
+#     X_tab=X_tab,
+#     target=target,
+#     n_epochs=5,
+#     batch_size=256,
+# )
 
+# # trainer.save('wd_model.pt')
+X_wide = wide_preprocessor.fit_transform(diabetes_df_test)
+X_tab = tab_preprocessor.fit_transform(diabetes_df_test)
+pre = trainer.predict(X_wide, X_tab)
+print(pre)
+print(diabetes_df_test)
 '''
 import numpy as np
 import pandas as pd
