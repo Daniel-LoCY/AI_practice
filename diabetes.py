@@ -14,7 +14,6 @@ from sklearn.model_selection import train_test_split
 # from deepctr_torch.models import *
 # This is a package in preview.
 from azureml.opendatasets import Diabetes
-from yaml import load
 
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
@@ -66,20 +65,20 @@ model = torch.load('wd_model.pt/wd_model.pt')
 
 trainer = Trainer(model, objective="regression", metrics=[Accuracy])
 trainer.num_workers = 0
-# trainer.fit(
-#     X_wide=X_wide,
-#     X_tab=X_tab,
-#     target=target,
-#     n_epochs=5,
-#     batch_size=256,
-# )
+trainer.fit(
+    X_wide=X_wide,
+    X_tab=X_tab,
+    target=target,
+    n_epochs=50000,
+    batch_size=256,
+)
 
-# # trainer.save('wd_model.pt')
-X_wide = wide_preprocessor.fit_transform(diabetes_df_test)
-X_tab = tab_preprocessor.fit_transform(diabetes_df_test)
-pre = trainer.predict(X_wide, X_tab)
-print(pre)
-print(diabetes_df_test)
+trainer.save('wd_model.pt')
+# X_wide = wide_preprocessor.fit_transform(diabetes_df_test)
+# X_tab = tab_preprocessor.fit_transform(diabetes_df_test)
+# pre = trainer.predict(X_wide, X_tab)
+# print(pre)
+# print(diabetes_df_test)
 '''
 import numpy as np
 import pandas as pd
