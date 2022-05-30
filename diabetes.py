@@ -19,7 +19,7 @@ from yaml import load
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
 
-print(diabetes_df.head())
+# print(diabetes_df.head())
 # train, test = train_test_split(diabetes_df, test_size=0.2)
 
 wide_cols = [
