@@ -12,10 +12,11 @@ from azureml.opendatasets import Diabetes
 
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
-diabetes_df, diabetes_df_test = train_test_split(diabetes_df, test_size=0.2)
+diabetes_df, diabetes_df_test = train_test_split(diabetes_df, test_size=0.8)
 
 with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-    print(diabetes_df)
+    # print(diabetes_df)
+    pass
 # age sex bmi map tc ldl hdl tch ltg glu y
 wide_cols = [
     "AGE",
@@ -48,8 +49,9 @@ tab_mlp = TabMlp(
     cat_embed_input=tab_preprocessor.cat_embed_input,
     continuous_cols=continuous_cols,
 )
-model = WideDeep(wide=wide, deeptabular=tab_mlp)
-model = torch.load('wd_model2.pt/wd_model.pt')
+# model = WideDeep(wide=wide, deeptabular=tab_mlp)
+model = torch.load('wd_model2.pt/wd_model.pt', map_location=torch.device('cpu'))
+# model = torch.load('model/widedeep.pt', map_location=torch.device('cpu'))
 
 trainer = Trainer(model, objective="regression", metrics=[Accuracy])
 trainer.num_workers = 0
@@ -57,18 +59,26 @@ trainer.num_workers = 0
 #     X_wide=X_wide,
 #     X_tab=X_tab,
 #     target=target,
-#     n_epochs=300000,
+#     n_epochs=200000,
 #     batch_size=256,
 # )
-# trainer.save('wd_model2.pt')
+# trainer.save(path='model', save_state_dict=True, model_filename='widedeep.pt')
 
-X_wide = wide_preprocessor.fit_transform(diabetes_df)
-X_tab = tab_preprocessor.fit_transform(diabetes_df)
-pre = trainer.predict(X_wide,X_tab)
-print(pre)
-print(diabetes_df['Y'])
-print(pre - list(diabetes_df['Y']) )
+# for param in model.parameters():
+#   print(param)
+# print(model.parameters())
 
+# X_wide = wide_preprocessor.fit_transform(diabetes_df)
+# X_tab = tab_preprocessor.fit_transform(diabetes_df)
+# pre = trainer.predict(X_wide,X_tab,batch_size=100)
+# print(pre)
+# print(diabetes_df['Y'])
+# print(pre - list(diabetes_df['Y']) )
+try:
+    for i in model:
+        print(i)
+except:
+    print('ERROR')
 
 '''
 import numpy as np
