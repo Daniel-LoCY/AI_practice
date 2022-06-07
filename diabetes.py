@@ -9,6 +9,7 @@ import pandas as pd
 import torch
 from sklearn.model_selection import train_test_split
 from azureml.opendatasets import Diabetes
+from torchsummary import summary
 
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
@@ -74,11 +75,7 @@ trainer.num_workers = 0
 # print(pre)
 # print(diabetes_df['Y'])
 # print(pre - list(diabetes_df['Y']) )
-try:
-    for i in model:
-        print(i)
-except:
-    print('ERROR')
+print(model)
 
 '''
 import numpy as np
