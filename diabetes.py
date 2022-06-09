@@ -13,11 +13,14 @@ from torchsummary import summary
 
 diabetes = Diabetes.get_tabular_dataset()
 diabetes_df = diabetes.to_pandas_dataframe() # data
-diabetes_df, diabetes_df_test = train_test_split(diabetes_df, test_size=0.8)
+# diabetes_df, diabetes_df_test = train_test_split(diabetes_df, test_size=0.3)
+# diabetes_df_test = diabetes.to_pandas_dataframe() # data
 
-with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-    # print(diabetes_df)
-    pass
+
+# with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+#     print(diabetes_df)
+#     pass
+
 # age sex bmi map tc ldl hdl tch ltg glu y
 wide_cols = [
     "AGE",
@@ -27,7 +30,6 @@ wide_cols = [
 ]
 crossed_cols = [("AGE", "BMI"), ("AGE", "BP")]
 wide_preprocessor = WidePreprocessor(wide_cols=wide_cols, crossed_cols=crossed_cols)
-X_wide = wide_preprocessor.fit_transform(diabetes_df)
 
 cat_embed_cols = [
     ("AGE"),
@@ -42,6 +44,8 @@ target = diabetes_df[target].values
 tab_preprocessor = TabPreprocessor(
     cat_embed_cols=cat_embed_cols, continuous_cols=continuous_cols
 )
+
+X_wide = wide_preprocessor.fit_transform(diabetes_df)
 X_tab = tab_preprocessor.fit_transform(diabetes_df)
 
 wide = Wide(input_dim=np.unique(X_wide).shape[0], pred_dim=1)
@@ -51,31 +55,40 @@ tab_mlp = TabMlp(
     continuous_cols=continuous_cols,
 )
 # model = WideDeep(wide=wide, deeptabular=tab_mlp)
-model = torch.load('wd_model2.pt/wd_model.pt', map_location=torch.device('cpu'))
+
+# model = torch.load('wd_model2.pt/wd_model.pt', map_location=torch.device('cpu'))
 # model = torch.load('model/widedeep.pt', map_location=torch.device('cpu'))
 
+model = torch.load('test.pt')
 trainer = Trainer(model, objective="regression", metrics=[Accuracy])
 trainer.num_workers = 0
-# trainer.fit(
-#     X_wide=X_wide,
-#     X_tab=X_tab,
-#     target=target,
-#     n_epochs=200000,
-#     batch_size=256,
-# )
-# trainer.save(path='model', save_state_dict=True, model_filename='widedeep.pt')
 
-# for param in model.parameters():
-#   print(param)
-# print(model.parameters())
+trainer.fit(
+    X_wide=X_wide,
+    X_tab=X_tab,
+    target=target,
+    n_epochs=100000,
+    batch_size=256,
+)
+torch.save(model, "test.pt")
 
-# X_wide = wide_preprocessor.fit_transform(diabetes_df)
-# X_tab = tab_preprocessor.fit_transform(diabetes_df)
-# pre = trainer.predict(X_wide,X_tab,batch_size=100)
+
+
+
+# # trainer.save(path='model', save_state_dict=True, model_filename='widedeep.pt')
+
+# # for param in model.parameters():
+# #   print(param)
+# # print(model.parameters())
+
+# X_wide = wide_preprocessor.fit_transform(diabetes_df_test)
+# X_tab = tab_preprocessor.fit_transform(diabetes_df_test)
+# pre = trainer.predict(X_test = { "X_wide" : X_wide, "X_tab" : X_tab })
 # print(pre)
-# print(diabetes_df['Y'])
-# print(pre - list(diabetes_df['Y']) )
-print(model)
+# print(diabetes_df_test['Y'])
+# print(pre - list(diabetes_df_test['Y']) )
+# print(model)
+
 
 '''
 import numpy as np
